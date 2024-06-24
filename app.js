@@ -25,7 +25,9 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './public')));
 
-app.use(cors());
+app.use(cors({
+  origin: [ 'http://43.205.140.194', 'http://localhost:3000' ]
+}));
 
 app.use('/v1/', indexRouter);
 app.use(function (req, res, next) {
