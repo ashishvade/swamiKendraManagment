@@ -48,7 +48,39 @@ class naivadyaController {
         }
     }
 
-  
+    async updateNaivadya(req, res) {
+        try {
+
+
+            if (req.body) {
+
+
+                const savedNaivadya = await naivaidyaModel.findOneAndUpdate({ naivadyaId: req.body.naivadyaId },
+                    {
+                        $set: {
+                            name: String(req.body.name).trim(),
+                            mobail: parseInt(req.body.mobail),
+                            naivadyaType: req.body.naivadyaType,
+                            time: String(req.body.time).trim(),
+                            dayPriority:String(req.body.dayPriority).trim()
+                        }
+                    }, { new: true });
+                if (savedNaivadya) {
+                    return apiResponse.successResponse(res, "Naivadya Created Successfully", savedNaivadya, "", "");
+                } else {
+                    return apiResponse.successNoContentResponse(res, "Data Not Found", "", "", "");
+                }
+            } else {
+                return apiResponse.bodyNotExist(res, "Body Empty", data = null, "", "")
+            }
+        } catch (error) {
+            return apiResponse.errorResponse(res, error.message, "", "", error);
+        }
+    }
+
+
+
+
     async getSchedule(req, res) {
         try {
             let { year, month } = req.body;
@@ -69,7 +101,7 @@ class naivadyaController {
             for (let i = 0; i < daysInMonth; i++) {
                 const currentDayOfWeek = (firstDayOfWeek + i) % 7;
                 const dayName = weekDay[currentDayOfWeek];
-                const dayPriority = Math.floor(i / 7) + 1; 
+                const dayPriority = Math.floor(i / 7) + 1;
 
                 const data = await naivaidyaModel.find({ dayName, dayPriority }).select({ name: 1, mobile: 1, time: 1, _id: 0 });
 
@@ -85,16 +117,38 @@ class naivadyaController {
                 //     }
                 // }
 
-                schedule.push({ 
-                    day:i+1,
-                    dayname:dayName,
-                    data 
+                schedule.push({
+                    day: i + 1,
+                    dayname: dayName,
+                    data
                 });
             }
 
 
 
             return apiResponse.successResponse(res, "Schedule Generated Successfully", schedule, "", "");
+        } catch (error) {
+            return apiResponse.errorResponse(res, error.message, "", "", error);
+        }
+    }
+
+    async getAllSevekari(req, res) {
+        try {
+
+
+            if (req.body) {
+                const AllSevekari = await naivaidyaModel.find({ status: "active" })
+
+
+
+                if (AllSevekari) {
+                    return apiResponse.successResponse(res, "getting All Sevekari Successfully", AllSevekari, "", "");
+                } else {
+                    return apiResponse.successNoContentResponse(res, "Data Not Found", "", "", "");
+                }
+            } else {
+                return apiResponse.bodyNotExist(res, "Body Empty", data = null, "", "")
+            }
         } catch (error) {
             return apiResponse.errorResponse(res, error.message, "", "", error);
         }

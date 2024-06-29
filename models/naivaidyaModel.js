@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const naivadyaModel = new Schema({
     naivadyaId: { type: String , unique: true,trim: true},
     name:{type: String ,trim: true},
-    mobile:{type: String,trim: true },
+    mobail:{type: Number },
     naivadyaType:{
         type:String,trim: true,
         enum: ["Morning", "Evning"],
