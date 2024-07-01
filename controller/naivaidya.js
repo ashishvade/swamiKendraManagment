@@ -103,7 +103,7 @@ class naivadyaController {
                 const dayName = weekDay[currentDayOfWeek];
                 const dayPriority = Math.floor(i / 7) + 1;
 
-                const data = await naivaidyaModel.find({ dayName, dayPriority }).select({ name: 1, mobile: 1, time: 1, _id: 0 });
+                const data = await naivaidyaModel.find({ dayName, dayPriority }).select({ name: 1, mobail: 1, time: 1, _id: 0 });
 
                 const scheduleDate = new Date(year, month, i + 1);
                 const reminderDate = new Date(scheduleDate);
