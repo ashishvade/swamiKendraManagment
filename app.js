@@ -26,7 +26,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './public')));
 
 app.use(cors({
-  origin: [ 'http://43.205.140.194', 'http://localhost:3000' ]
+  origin: [ 'http://43.205.140.194', 'http://localhost:3000' ],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+  credentials: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' } 
 }));
 
 app.use('/v1/', indexRouter);
