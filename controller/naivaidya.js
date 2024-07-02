@@ -85,8 +85,12 @@ class naivadyaController {
         try {
             let { year, month } = req.body;
             year = parseInt(year) || new Date().getFullYear();
-            month = parseInt(month) || new Date().getMonth();
-            console.log(month);
+            month = parseInt(month)
+            if(!month&&month!=0){
+                month= new Date().getMonth();
+            }
+            console.log( month);
+            console.log(typeof month);
 
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDayOfWeek = new Date(year, month, 1).getDay();
