@@ -7,5 +7,6 @@ router.post('/createNaivadya', naivadyaObj.createNaivadya);
 router.post('/getShedule', naivadyaObj.getSchedule);
 router.get('/getAllSevekari', naivadyaObj.getAllSevekari);
 router.post('/updateNaivadya', naivadyaObj.updateNaivadya);
+router.post('/checkUrlResponsiveness', naivadyaObj.checkUrlResponsiveness)
 
 module.exports = router;

@@ -6,6 +6,11 @@ const twilio = require('twilio');
 const fs = require('fs');
 const handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
+const axios = require('axios');              //9466a27cc595f65b0d2e90e0c58e36cb
+const cron = require('node-cron');          //9466a27cc595f65b0d2e90e0c58e36cb  -api key ,  secreate key-c9634221d8d381b1d0a4afe573b5a7c3
+require('dotenv').config();
+
+const mailjet = require('node-mailjet').apiConnect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE);
 
 class naivadyaController {
 
@@ -77,9 +82,6 @@ class naivadyaController {
             return apiResponse.errorResponse(res, error.message, "", "", error);
         }
     }
-
-
-
 
     async getSchedule(req, res) {
         try {
@@ -158,8 +160,90 @@ class naivadyaController {
         }
     }
 
+    async checkUrlResponsiveness(req, res) {
+        try {
+            // Array of URLs with their method type (no body for POST)
+            const urls = [
+                { url: 'http://115.124.97.182:8085/RTSUAT/citizenRegistration', method: 'POST' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/saveApplication1', method: 'POST' }, // POST without sending any body
+                { url: 'http://115.124.97.182:8085/RTSUAT/getAllWard', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/getStatusByToken/1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/getPaymentLink?appTokenNo=1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/getPaymentStatus?appTokenNo=1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/getPaymentReceipt?appTokenNo=1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/getCertificate?appTokenNo=1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/viewUploadedImage/1234', method: 'GET' },
+                { url: 'http://115.124.97.182:8085/RTSUAT/viewOfficierSign/123/1234', method: 'GET' },
+              
+                // Add more URLs as needed with 'method'
+            ];
+            // const { email } = req.body;
 
+            // Function to ping URL and check responsiveness based on method type
+            const pingUrl = async (urlObj) => {
+                try {
+                    if (urlObj.method === 'GET') {
+                        // Handle GET method
+                        await axios.get(urlObj.url);
+                    } else if (urlObj.method === 'POST') {
+                        // Handle POST method without sending any body to avoid repetitive data
+                        await axios.post(urlObj.url);
+                    }
+                    return true; // URL is responsive
+                } catch (error) {
+                    return false; // URL is not responsive
+                }
+            };
+
+            // Loop through the array of URLs and check each one
+            const checkAllUrls = async () => {
+                for (const urlObj of urls) {
+                    const isResponsive = await pingUrl(urlObj);
+
+                    if (!isResponsive) {
+                        console.log(`URL ${urlObj.url} is not responsive. Checking again later...`);
+
+                        // Schedule cron job to check every minute if the URL becomes responsive
+                        const job = cron.schedule('* * * * *', async () => {
+                            const urlResponsive = await pingUrl(urlObj);
+                            if (urlResponsive) {
+                                console.log(`URL ${urlObj.url} is now responsive!`);
+
+                                // Send email using Mailjet
+                                await mailjet.post("send", { version: 'v3.1' }).request({
+                                    Messages: [{
+                                        From: { Email: process.env.MAILJET_SENDER_EMAIL, Name: "PMC CARE API" },
+                                        To: [{ Email: process.env.RECIPIENT_EMAIL, Name: "Ashish" }],
+                                        Subject: "URL is Now Responsive",
+                                        TextPart: `The URL ${urlObj.url} is now responsive.`,
+                                        HTMLPart: `<p>The URL <a href="${urlObj.url}">${urlObj.url}</a> is now responsive.</p>`
+                                    }]
+                                });
+
+                                // Stop the cron job after URL becomes responsive
+                                job.stop();
+                            }
+                        });
+
+                        return apiResponse.successResponse(res, `Monitoring started for URL: ${urlObj.url}`, "", "", "");
+                    } else {
+                        console.log(`URL ${urlObj.url} is already responsive.`);
+                    }
+                }
+                return apiResponse.successResponse(res, "All URLs are already responsive.", "", "", "");
+            };
+
+            // Check all URLs initially
+            await checkAllUrls();
+
+        } catch (error) {
+            return apiResponse.errorResponse(res, error.message, "", "", error);
+        }
+    }
 }
+
+
+
 
 
 module.exports = naivadyaController;
